@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>G&amp;G Agenda · Gomides &amp; Gomes</title>
+  <meta name="description" content="Agenda jurídica do escritório Gomides & Gomes — compromissos, advogados, clientes e processos." />
+  <meta name="theme-color" content="#0B1626" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="icon" href="assets/favicon.ico" sizes="any" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="lib/lucide.min.js" defer></script>
+  <script>
+    // Aplica o estado salvo do layout antes da pintura (evita "piscar")
+    (function () {
+      try {
+        var w = window.innerWidth, nav = localStorage.getItem("gg-nav"), pnl = localStorage.getItem("gg-panel");
+        var c = document.documentElement.classList;
+        if (nav === "collapsed" || (nav === null && w < 1100)) c.add("nav-collapsed");
+        if (w >= 1500 && pnl !== "closed") c.add("panel-open");
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+  <div class="app">
+    <!-- ======================= MENU LATERAL (recolhível) ======================= -->
+    <aside class="sidebar" aria-label="Menu principal">
+      <div class="brand">
+        <img src="assets/logo-gg.png" alt="Emblema Gomides & Gomes" class="brand-logo" />
+        <div class="brand-text">
+          <span class="brand-name">G&amp;G Agenda</span>
+          <span class="brand-sub">Gomides &amp; Gomes</span>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <span class="nav-label">Navegação</span>
+        <a href="#agenda" class="nav-item" data-view="agenda" data-tip="Visão Geral"><i data-lucide="layout-dashboard"></i><span>Visão Geral</span></a>
+        <a href="#novo" class="nav-item" data-view="novo" data-tip="Novo Compromisso"><i data-lucide="calendar-plus"></i><span>Novo Compromisso</span></a>
+        <a href="#admin" class="nav-item" data-view="admin" data-tip="Administração"><i data-lucide="shield-check"></i><span>Administração</span></a>
+
+        <span class="nav-label">Ações</span>
+        <button class="nav-item" id="nav-exportar" data-tip="Exportar CSV"><i data-lucide="file-spreadsheet"></i><span>Exportar planilha</span></button>
+        <button class="nav-item" id="nav-painel" data-tip="Painel da agenda"><i data-lucide="panel-right"></i><span>Painel da agenda</span></button>
+      </nav>
+
+      <div class="sidebar-foot">
+        <div class="foot-card">
+          <i data-lucide="scale"></i>
+          <div class="foot-text">
+            <strong>Advocacia &amp; Consultoria</strong>
+            <span>Agenda jurídica integrada</span>
+          </div>
+        </div>
+        <button class="collapse-btn" id="btn-collapse" aria-label="Recolher menu" title="Recolher menu ( [ )">
+          <i data-lucide="chevrons-left"></i><span>Recolher menu</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ======================= CONTEÚDO ======================= -->
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-title">
+          <img src="assets/logo-gg.png" alt="" class="topbar-logo" />
+          <div>
+            <p class="eyebrow" id="today-label">—</p>
+            <h1 class="page-title" id="page-title">Visão Geral</h1>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost btn-icon-sm" id="btn-refresh" title="Atualizar dados"><i data-lucide="refresh-cw"></i></button>
+          <a href="#novo" class="btn btn-gold" id="btn-top-novo"><i data-lucide="plus"></i><span class="hide-sm">Novo compromisso</span></a>
+          <button class="btn btn-ghost btn-icon-sm panel-toggle" id="btn-panel" title="Abrir/fechar painel ( ] )" aria-controls="rpanel" aria-expanded="false">
+            <i data-lucide="panel-right"></i><span class="dot-badge" id="badge-hoje" hidden></span>
+          </button>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- ============ VIEW: AGENDA ============ -->
+        <section class="view" id="view-agenda">
+          <div class="hero">
+            <div class="hero-text">
+              <span class="hero-kicker"><span class="pulse"></span>Painel do escritório</span>
+              <h2 id="hero-greeting">Bem-vindo(a)</h2>
+              <p id="hero-summary">Acompanhe audiências, reuniões e prazos da equipe em um só lugar.</p>
+              <div class="hero-actions">
+                <a href="#novo" class="btn btn-gold"><i data-lucide="calendar-plus"></i>Agendar</a>
+                <button class="btn btn-glass" id="btn-exportar"><i data-lucide="download"></i>Exportar Planilha (CSV)</button>
+              </div>
+            </div>
+            <div class="hero-art" aria-hidden="true">
+              <img src="assets/logo-wordmark.jpg" alt="" class="hero-mark" />
+            </div>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="stat-top"><span class="stat-label">Total agendado</span><span class="stat-icon"><i data-lucide="calendar-check-2"></i></span></div>
+              <strong class="stat-value" id="stat-total">0</strong>
+              <span class="stat-foot">compromissos na agenda</span>
+            </div>
+            <div class="stat">
+              <div class="stat-top"><span class="stat-label">Total filtrado</span><span class="stat-icon"><i data-lucide="list-filter"></i></span></div>
+              <strong class="stat-value" id="stat-filtrado">0</strong>
+              <span class="stat-foot" id="stat-filtrado-foot">sem filtros ativos</span>
+            </div>
+            <div class="stat">
+              <div class="stat-top"><span class="stat-label">Advogados</span><span class="stat-icon"><i data-lucide="briefcase"></i></span></div>
+              <strong class="stat-value" id="stat-adv">0</strong>
+              <span class="stat-foot">cadastrados</span>
+            </div>
+            <div class="stat">
+              <div class="stat-top"><span class="stat-label">Processos</span><span class="stat-icon"><i data-lucide="folder-open"></i></span></div>
+              <strong class="stat-value" id="stat-proc">0</strong>
+              <span class="stat-foot">cadastrados</span>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="toolbar">
+              <div class="filters">
+                <label class="field">
+                  <span><i data-lucide="calendar"></i> Data</span>
+                  <input type="date" id="filtro-data" />
+                </label>
+                <label class="field">
+                  <span><i data-lucide="user-round"></i> Advogado</span>
+                  <select id="filtro-advogado"><option value="">Todos os advogados</option></select>
+                </label>
+                <button class="btn btn-ghost" id="btn-limpar"><i data-lucide="x"></i>Limpar filtros</button>
+              </div>
+              <div class="segmented" role="tablist" aria-label="Modo de exibição">
+                <button class="seg active" data-mode="cards"><i data-lucide="layout-grid"></i><span>Cards</span></button>
+                <button class="seg" data-mode="tabela"><i data-lucide="table-2"></i><span>Tabela</span></button>
+              </div>
+            </div>
+
+            <div class="result-line" id="result-line"></div>
+            <div id="lista"></div>
+          </div>
+        </section>
+
+        <!-- ============ VIEW: NOVO ============ -->
+        <section class="view" id="view-novo" hidden>
+          <div class="grid-form">
+            <form class="panel form" id="form-novo" novalidate>
+              <div class="panel-head">
+                <div class="panel-icon"><i data-lucide="calendar-plus"></i></div>
+                <div>
+                  <h2>Agendar compromisso</h2>
+                  <p>Preencha os dados abaixo. O sistema valida datas, horários e conflitos de agenda automaticamente.</p>
+                </div>
+              </div>
+
+              <div class="alert alert-error" id="form-erro" hidden>
+                <i data-lucide="circle-alert"></i><span></span>
+              </div>
+
+              <div class="form-section">
+                <span class="section-label"><b>1</b> O quê</span>
+                <div class="form-grid">
+                  <label class="field span-2">
+                    <span>Título do compromisso</span>
+                    <input type="text" id="f-titulo" placeholder="Ex.: Audiência de conciliação" maxlength="120" autocomplete="off" />
+                  </label>
+                  <div class="field span-2">
+                    <span>Modalidade</span>
+                    <div class="pills" id="f-modalidade"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <span class="section-label"><b>2</b> Quem</span>
+                <div class="form-grid">
+                  <label class="field">
+                    <span>Advogado</span>
+                    <select id="f-advogado"></select>
+                  </label>
+                  <label class="field">
+                    <span>Cliente</span>
+                    <select id="f-cliente"></select>
+                  </label>
+                  <label class="field span-2">
+                    <span>Processo</span>
+                    <select id="f-processo" class="mono"></select>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <span class="section-label"><b>3</b> Quando</span>
+                <div class="form-grid cols-3">
+                  <label class="field">
+                    <span>Data</span>
+                    <input type="date" id="f-data" />
+                  </label>
+                  <label class="field">
+                    <span>Hora início</span>
+                    <input type="time" id="f-inicio" />
+                  </label>
+                  <label class="field">
+                    <span>Hora fim</span>
+                    <input type="time" id="f-fim" />
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button type="reset" class="btn btn-ghost" id="btn-reset"><i data-lucide="eraser"></i>Limpar</button>
+                <button type="submit" class="btn btn-gold" id="btn-salvar"><i data-lucide="check"></i>Agendar compromisso</button>
+              </div>
+            </form>
+
+            <aside class="side-col">
+              <div class="panel preview">
+                <span class="eyebrow">Pré-visualização</span>
+                <div id="preview-card"></div>
+              </div>
+              <div class="panel rules">
+                <span class="eyebrow">Regras da agenda</span>
+                <ul>
+                  <li><i data-lucide="text-cursor-input"></i>Todos os campos são obrigatórios.</li>
+                  <li><i data-lucide="calendar-x-2"></i>Não é possível agendar em datas passadas.</li>
+                  <li><i data-lucide="clock-alert"></i>A hora de fim deve ser maior que a de início.</li>
+                  <li><i data-lucide="users-round"></i>Um advogado não pode ter dois compromissos sobrepostos.</li>
+                </ul>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <!-- ============ VIEW: ADMIN ============ -->
+        <section class="view" id="view-admin" hidden>
+          <p class="lead">Cadastre advogados, clientes e processos. As novas opções ficam disponíveis imediatamente para agendamento e filtros.</p>
+          <div class="admin-grid">
+            <div class="panel admin-card" data-tipo="advogados">
+              <div class="admin-head">
+                <div class="panel-icon"><i data-lucide="briefcase"></i></div>
+                <div><h3>Advogados</h3><span class="count" data-count></span></div>
+              </div>
+              <form class="admin-form" novalidate>
+                <input type="text" placeholder="Nome do advogado" maxlength="100" autocomplete="off" />
+                <button class="btn btn-gold btn-icon" title="Cadastrar"><i data-lucide="plus"></i></button>
+              </form>
+              <ul class="admin-list"></ul>
+            </div>
+
+            <div class="panel admin-card" data-tipo="clientes">
+              <div class="admin-head">
+                <div class="panel-icon"><i data-lucide="user-round"></i></div>
+                <div><h3>Clientes</h3><span class="count" data-count></span></div>
+              </div>
+              <form class="admin-form" novalidate>
+                <input type="text" placeholder="Nome do cliente" maxlength="100" autocomplete="off" />
+                <button class="btn btn-gold btn-icon" title="Cadastrar"><i data-lucide="plus"></i></button>
+              </form>
+              <ul class="admin-list"></ul>
+            </div>
+
+            <div class="panel admin-card" data-tipo="processos">
+              <div class="admin-head">
+                <div class="panel-icon"><i data-lucide="folder-open"></i></div>
+                <div><h3>Processos</h3><span class="count" data-count></span></div>
+              </div>
+              <form class="admin-form" novalidate>
+                <input type="text" placeholder="0000000-00.0000.0.00.0000" maxlength="40" autocomplete="off" class="mono" />
+                <button class="btn btn-gold btn-icon" title="Cadastrar"><i data-lucide="plus"></i></button>
+              </form>
+              <ul class="admin-list mono"></ul>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- ======================= PAINEL RETRÁTIL (direita) ======================= -->
+    <aside class="rpanel" id="rpanel" aria-label="Painel da agenda">
+      <div class="rpanel-inner">
+        <div class="rpanel-head">
+          <div>
+            <span class="eyebrow">Painel da agenda</span>
+            <h3 id="rp-mes">—</h3>
+          </div>
+          <button class="btn btn-ghost btn-icon-sm" id="rp-close" title="Recolher painel"><i data-lucide="chevrons-right"></i></button>
+        </div>
+
+        <div class="cal">
+          <div class="cal-nav">
+            <button class="cal-btn" id="cal-prev" aria-label="Mês anterior"><i data-lucide="chevron-left"></i></button>
+            <button class="cal-today" id="cal-hoje">Hoje</button>
+            <button class="cal-btn" id="cal-next" aria-label="Próximo mês"><i data-lucide="chevron-right"></i></button>
+          </div>
+          <div class="cal-week"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+          <div class="cal-grid" id="cal-grid"></div>
+          <p class="cal-hint"><span class="cal-dot"></span> dias com compromissos · clique para filtrar</p>
+        </div>
+
+        <div class="rp-section">
+          <div class="rp-title"><span>Hoje</span><span class="rp-count" id="rp-hoje-count">0</span></div>
+          <div id="rp-hoje"></div>
+        </div>
+
+        <div class="rp-section">
+          <div class="rp-title"><span>Próximos compromissos</span></div>
+          <div id="rp-proximos"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- alça da barra retrátil (aparece com o painel fechado) -->
+    <button class="rpanel-handle" id="rp-handle" title="Abrir painel da agenda" aria-label="Abrir painel da agenda">
+      <i data-lucide="chevrons-left"></i><span>Agenda</span>
+    </button>
+    <div class="backdrop" id="backdrop"></div>
+  </div>
+
+  <!-- Navegação inferior (celular) -->
+  <nav class="bottom-nav" aria-label="Navegação">
+    <a href="#agenda" data-view="agenda"><i data-lucide="layout-dashboard"></i><span>Agenda</span></a>
+    <a href="#novo" data-view="novo" class="bn-main"><i data-lucide="plus"></i><span>Novo</span></a>
+    <a href="#admin" data-view="admin"><i data-lucide="shield-check"></i><span>Admin</span></a>
+  </nav>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script src="js/app.js" defer></script>
+</body>
+</html>
